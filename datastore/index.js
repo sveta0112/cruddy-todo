@@ -3,7 +3,9 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
-var items = {};
+var items = {
+  '0001': 'do laundry'
+};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -31,12 +33,13 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      callback(null, { id: id, text: data });
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
