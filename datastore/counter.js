@@ -15,25 +15,38 @@ const zeroPaddedNumber = (num) => {
   return sprintf('%05d', num);
 };
 
+
 const readCounter = (callback) => {
-  fs.readFile(exports.counterFile, (err, fileData) => {
-    if (err) {
-      callback(null, 0);
-    } else {
-      callback(null, Number(fileData));
-    }
+  return new Promise((resolve, reject) =>{
+    fs.readFile(exports.counterFile, (err, fileData) =>{
+      if(err){
+        reject(err);
+      } else {
+        resolve(fileData);
+      }
+    }); 
   });
+  // fs.readFile(exports.counterFile, (err, fileData) => {
+  //   if (err) {
+  //     callback(null, 0);
+  //   } else {
+  //     callback(null, Number(fileData));
+  //   }
+  // });
 };
 
 const writeCounter = (count, callback) => {
   var counterString = zeroPaddedNumber(count);
-  fs.writeFile(exports.counterFile, counterString, (err) => {
+  return new Promise((resolve, reject) =>{
+    fs.writeFile(exports.counterFile, counterString, (err) => {
     if (err) {
-      throw ('error writing counter');
+      reject('error writing counter');
     } else {
-      callback(null, counterString);
+      resolve(null, counterString);
     }
   });
+  })
+  
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
