@@ -23,11 +23,14 @@ exports.create = (text, callback) => {
   //   });
   // });
   let id;
+  let toDo;
   counter.getNextUniqueId().then(idNo => {
-    debugger;
+    
     id = idNo;
-    return writeFileAsync(exports.dataDir + `/${id}.txt`, text);
-  }).then(() => callback(null, {id, text}));
+    toDo = {id, text, createdAt: new Date()};
+    return writeFileAsync(exports.dataDir + `/${id}.txt`, JSON.stringify(toDo)); // JSON.Stringify(toDo));
+  })
+    .then(() => callback(null, toDo)); //toDo instead of object literal
 };
 
 
@@ -58,8 +61,9 @@ exports.readAll = (callback) => {
 
 
 exports.readOne = (id, callback) => {
-  readFileAsync(exports.dataDir + `/${id}.txt`,'utf8',id)
-    .then((data) => callback(null, {id: id, text: data}));
+  readFileAsync(exports.dataDir + `/${id}.txt`, 'utf8', id)
+    .then((data) => callback(null, JSON.parse(data)))
+    .catch(() => callback(new Error(`No item with id: ${id}`)));
   // fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
   //   if (err) {
   //     callback(new Error(`No item with id: ${id}`));
@@ -72,9 +76,15 @@ exports.readOne = (id, callback) => {
 exports.readOneAsync = Promise.promisify(exports.readOne);
 
 exports.update = (id, text, callback) => {
+  let toDo;
   readFileAsync(exports.dataDir + `/${id}.txt`, 'utf8')
-    .then(() => writeFileAsync(exports.dataDir + `/${id}.txt`, text))
-    .then(() => callback(null, { id, text }))
+    .then((data) => {
+      toDo = JSON.parse(data);
+      toDo.text = text;
+      toDo.updatedAt = new Date();
+      return writeFileAsync(exports.dataDir + `/${id}.txt`, JSON.stringify(toDo));
+    })
+    .then(() => callback(null, toDo))
     .catch(err => callback(new Error(`No item with id: ${id}`)));
   // fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
   //   if (err) {
