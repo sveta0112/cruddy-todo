@@ -16,7 +16,7 @@ const zeroPaddedNumber = (num) => {
 };
 
 
-const readCounter = (callback) => {
+const readCounter = () => {
   return new Promise((resolve, reject) =>{
     fs.readFile(exports.counterFile, (err, fileData) =>{
       if(err){
@@ -35,32 +35,24 @@ const readCounter = (callback) => {
   // });
 };
 
-const writeCounter = (count, callback) => {
+const writeCounter = (count) => {
   var counterString = zeroPaddedNumber(count);
   return new Promise((resolve, reject) =>{
     fs.writeFile(exports.counterFile, counterString, (err) => {
-    if (err) {
-      reject('error writing counter');
-    } else {
-      resolve(null, counterString);
-    }
+      if (err) {
+        reject('error writing counter');
+      } else {
+        resolve(counterString);
+      }
+    });
   });
-  })
   
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
 
-exports.getNextUniqueId = (callback) => {
-  readCounter(function(err, counter) {
-    if (err) {
-      null;
-    } else {
-      writeCounter(counter + 1, function(err, counterString) {
-        callback(err, counterString);
-      });
-    }
-  });
+exports.getNextUniqueId = () => {
+  readCounter().then(counter => writeCounter(counter +1));
 };
 
 

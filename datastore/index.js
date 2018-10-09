@@ -7,28 +7,35 @@ var Promise = require('bluebird');
 var items = {
   '0001': 'do laundry'
 };
-
+let readdirAsync = Promise.promisify(fs.readdir);
+let readFileAsync = Promise.promisify(fs.readFile);
+let writeFileAsync = Promise.promisify(fs.writeFile);
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  counter.getNextUniqueId(function (err, id) {
-    fs.writeFile(exports.dataDir + `/${id}.txt`, text, function(err) {
-      if (err) {
-        throw err;
-      } 
-      callback(null, { id, text });
-    });
-  });
+  // counter.getNextUniqueId(function (err, id) {
+  //   fs.writeFile(exports.dataDir + `/${id}.txt`, text, function(err) {
+  //     if (err) {
+  //       throw err;
+  //     } 
+  //     callback(null, { id, text });
+  //   });
+  // });
+  let id;
+  counter.getNextUniqueId().then(idNo => {
+    id = idNo;
+    return writeFileAsync(exports.dataDir + `/${id}.txt`, text);
+  }).then(callback(null, {id, text}));
 };
 
-exports.readdirAsync = Promise.promisify(fs.readdir);
+
 
 // exports.readAll = (callback) => {
 //   fs.readdir(exports.dataDir, function (err, files) { 
 //     if (err) {
 //       throw err;
 //     } else {
-//       return Promise.all(files.map(fileName => { 
+//       Promise.all(files.map(fileName => { 
 //         debugger;
 //         return exports.readOneAsync(fileName.split('.')[0]);
 //       })).then((err, list) => callback(err, list));
@@ -39,7 +46,7 @@ exports.readdirAsync = Promise.promisify(fs.readdir);
 // };
 
 exports.readAll = (callback) => {
-  return exports.readdirAsync(exports.dataDir)
+  return readdirAsync(exports.dataDir)
     .then(files => Promise.all(files.map(fileName => 
       exports.readOneAsync(fileName.split('.')[0])
     ))).then(list => callback(null, list))
