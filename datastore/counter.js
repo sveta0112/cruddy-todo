@@ -52,7 +52,11 @@ const writeCounter = (count) => {
 // Public API - Fix this function //////////////////////////////////////////////
 
 exports.getNextUniqueId = () => {
-  readCounter().then(counter => writeCounter(counter +1));
+  return readCounter().then(counter => {
+    let nextCounter = Number(counter) + 1;
+    return writeCounter(nextCounter);
+  }).catch(() => writeCounter(0));
+    
 };
 
 

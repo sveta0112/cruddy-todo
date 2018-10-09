@@ -10,6 +10,7 @@ var items = {
 let readdirAsync = Promise.promisify(fs.readdir);
 let readFileAsync = Promise.promisify(fs.readFile);
 let writeFileAsync = Promise.promisify(fs.writeFile);
+let unlinkAsync = Promise.promisify(fs.unlink);
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
@@ -23,9 +24,10 @@ exports.create = (text, callback) => {
   // });
   let id;
   counter.getNextUniqueId().then(idNo => {
+    debugger;
     id = idNo;
     return writeFileAsync(exports.dataDir + `/${id}.txt`, text);
-  }).then(callback(null, {id, text}));
+  }).then(() => callback(null, {id, text}));
 };
 
 
@@ -46,7 +48,7 @@ exports.create = (text, callback) => {
 // };
 
 exports.readAll = (callback) => {
-  return readdirAsync(exports.dataDir)
+  readdirAsync(exports.dataDir)
     .then(files => Promise.all(files.map(fileName => 
       exports.readOneAsync(fileName.split('.')[0])
     ))).then(list => callback(null, list))
@@ -56,30 +58,39 @@ exports.readAll = (callback) => {
 
 
 exports.readOne = (id, callback) => {
-  fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
-    if (err) {
-      callback(new Error(`No item with id: ${id}`));
-    } else {
-      callback(null, { id: id, text: data });
-    }
-  });
+  readFileAsync(exports.dataDir + `/${id}.txt`,'utf8',id)
+    .then((data) => callback(null, {id: id, text: data}));
+  // fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
+  //   if (err) {
+  //     callback(new Error(`No item with id: ${id}`));
+  //   } else {
+  //     callback(null, { id: id, text: data });
+  //   }
+  // });
 };
 
 exports.readOneAsync = Promise.promisify(exports.readOne);
 
 exports.update = (id, text, callback) => {
-  fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
-    if (err) {
-      callback(new Error(`No item with id: ${id}`));
-    } else {
-      fs.writeFile(exports.dataDir + `/${id}.txt`, text, function() {
-        callback(null, { id, text });
-      });
-    }
-  });
+  readFileAsync(exports.dataDir + `/${id}.txt`, 'utf8')
+    .then(() => writeFileAsync(exports.dataDir + `/${id}.txt`, text))
+    .then(() => callback(null, { id, text }))
+    .catch(err => callback(new Error(`No item with id: ${id}`)));
+  // fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
+  //   if (err) {
+  //     callback(new Error(`No item with id: ${id}`));
+  //   } else {
+  //     fs.writeFile(exports.dataDir + `/${id}.txt`, text, function() {
+  //       callback(null, { id, text });
+  //     });
+  //   }
+  // });
 };
 
 exports.delete = (id, callback) => {
+  // unlinkAsync(exports.dataDir + `/${id}.txt`)
+  // .then(() => callback())
+  // .catch(err => callback(new Error(`No item with id: ${id}`)));
   fs.unlink(exports.dataDir + `/${id}.txt`, function(err) {
     if (err) {
       callback(new Error(`No item with id: ${id}`));
