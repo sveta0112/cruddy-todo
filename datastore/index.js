@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+var Promise = require('bluebird');
 
 var items = {
   '0001': 'do laundry'
@@ -20,17 +21,32 @@ exports.create = (text, callback) => {
   });
 };
 
-exports.readAll = (callback) => {
-  fs.readdir(exports.dataDir, function (err, files) { 
-    if (err) {
-      throw err;
-    } else {
-      let data = files.map(file => ({id: file.split('.')[0], text: file.split('.')[0]}));
-      callback(null, data);
-    }
-  });
+exports.readdirAsync = Promise.promisify(fs.readdir);
+
+// exports.readAll = (callback) => {
+//   fs.readdir(exports.dataDir, function (err, files) { 
+//     if (err) {
+//       throw err;
+//     } else {
+//       return Promise.all(files.map(fileName => { 
+//         debugger;
+//         return exports.readOneAsync(fileName.split('.')[0]);
+//       })).then((err, list) => callback(err, list));
+      
+//     }
+//   });
   
+// };
+
+exports.readAll = (callback) => {
+  return exports.readdirAsync(exports.dataDir)
+    .then(files => Promise.all(files.map(fileName => 
+      exports.readOneAsync(fileName.split('.')[0])
+    ))).then(list => callback(null, list))
+    .catch(err => callback(err));
 };
+
+
 
 exports.readOne = (id, callback) => {
   fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
@@ -41,6 +57,8 @@ exports.readOne = (id, callback) => {
     }
   });
 };
+
+exports.readOneAsync = Promise.promisify(exports.readOne);
 
 exports.update = (id, text, callback) => {
   fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
