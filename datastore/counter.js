@@ -19,7 +19,7 @@ const zeroPaddedNumber = (num) => {
 const readCounter = () => {
   return new Promise((resolve, reject) =>{
     fs.readFile(exports.counterFile, (err, fileData) =>{
-      if(err){
+      if (err) {
         reject(err);
       } else {
         resolve(fileData);
@@ -40,7 +40,7 @@ const writeCounter = (count) => {
   return new Promise((resolve, reject) =>{
     fs.writeFile(exports.counterFile, counterString, (err) => {
       if (err) {
-        reject('error writing counter');
+        throw ('error writing counter');
       } else {
         resolve(counterString);
       }
