@@ -26,16 +26,16 @@ describe('getNextUniqueId', () => {
   beforeEach(initializeTestCounter);
   beforeEach(cleanTestDatastore);
 
-  it('should use error first callback pattern', (done) => {
-    counter.getNextUniqueId((err, id) => {
-      expect(err).to.be.null;
+  it('should return a promise', (done) => {
+    counter.getNextUniqueId().then((id) => {
+      //expect(err).to.be.null;
       expect(id).to.exist;
       done();
     });
   });
 
   it('should give an id as a zero padded string', (done) => {
-    counter.getNextUniqueId((err, id) => {
+    counter.getNextUniqueId().then((id) => {
       expect(id).to.be.a.string;
       expect(id).to.match(/^0/);
       done();
@@ -44,7 +44,7 @@ describe('getNextUniqueId', () => {
 
   it('should give the next id based on the count in the file', (done) => {
     fs.writeFileSync(counter.counterFile, '00025');
-    counter.getNextUniqueId((err, id) => {
+    counter.getNextUniqueId().then((id) => {
       expect(id).to.equal('00026');
       done();
     });
@@ -52,7 +52,7 @@ describe('getNextUniqueId', () => {
 
   it('should update the counter file with the next value', (done) => {
     fs.writeFileSync(counter.counterFile, '00371');
-    counter.getNextUniqueId((err, id) => {
+    counter.getNextUniqueId().then((id) => {
       const counterFileContents = fs.readFileSync(counter.counterFile).toString();
       expect(counterFileContents).to.equal('00372');
       done();
@@ -87,10 +87,10 @@ describe('todos', () => {
       });
     });
 
-    it('should only save todo text contents in file', (done) => {
+    it('should save the text contents as a property in a JSON object', (done) => {
       const todoText = 'walk the dog';
       todos.create(todoText, (err, todo) => {
-        const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`)).toString();
+        const todoFileContents = JSON.parse(fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`))).text;
         expect(todoFileContents).to.equal(todoText);
         done();
       });
@@ -123,8 +123,9 @@ describe('todos', () => {
       todos.create(todo1text, (err, todo) => {
         todos.create(todo2text, (err, todo) => {
           todos.readAll((err, todoList) => {
+            let nameAndTextList = todoList.map(({id, text}) => ({id, text}));
             expect(todoList).to.have.lengthOf(2);
-            expect(todoList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
+            expect(nameAndTextList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
             done();
           });
         });
@@ -146,7 +147,8 @@ describe('todos', () => {
       todos.create(todoText, (err, createdTodo) => {
         const id = createdTodo.id;
         todos.readOne(id, (err, readTodo) => {
-          expect(readTodo).to.deep.equal({ id, text: todoText });
+          let todo = {id: readTodo.id, text: readTodo.text};
+          expect(todo).to.deep.equal({ id, text: todoText });
           done();
         });
       });
@@ -171,7 +173,7 @@ describe('todos', () => {
       const updatedTodoText = 'updated todo';
       todos.update(todoId, updatedTodoText, (err, todo) => {
         const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
-        expect(todoFileContents).to.equal(updatedTodoText);
+        expect(JSON.parse(todoFileContents).text).to.equal(updatedTodoText);
         done();
       });
     });
