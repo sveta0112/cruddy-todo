@@ -7,12 +7,34 @@ $(() => {
       <span><%=text%></span>
       <button data-action="edit">edit</button>
       <button data-action="done">&#x2714;</button>
-      <span>created at: <%=createdAt%></span>
+      <span>&nbsp;&nbsp;&nbsp;&nbsp;created at: <%=createdAt%></span>
     </li>
   `);
 
+  var updatedTemplate = _.template(`
+    <li data-id="<%=id%>" class="todo">
+      <span><%=text%></span>
+      <button data-action="edit">edit</button>
+      <button data-action="done">&#x2714;</button>
+      <span>&nbsp;&nbsp;&nbsp;&nbsp;created at: <%=createdAt%>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <span>edited at: <%=updatedAt%></span>
+    </li>
+  `);
+  // doesn't work because JSON.parse returns a string not a Date object
+  // var fixTimeDisplay = ({id, text, createdAt, updatedAt}) => {
+  //   createdAt = createdAt.toDateString() + ' ' + createdAt.toTimeString();
+  //   if (updatedAt) {
+  //     updatedAt = updatedAt.toDateString() + ' ' + updatedAt.toTimeString();
+  //   }
+  //   return {id, text, createdAt, updatedAt};
+  // }
+  
   var renderTodo = (todo) => {
-    return template(todo);
+    if (todo.updatedAt) {
+      return updatedTemplate(todo);
+    } else {
+      return template(todo);
+    }
   };
 
   var addTodo = (todo) => {
