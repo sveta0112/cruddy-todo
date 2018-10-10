@@ -54,14 +54,15 @@ exports.readAll = (callback) => {
   readdirAsync(exports.dataDir)
     .then(files => Promise.all(files.map(fileName => 
       exports.readOneAsync(fileName.split('.')[0])
-    ))).then(list => callback(null, list))
+    )))
+    .then(list => callback(null, list))
     .catch(err => callback(err));
 };
 
 
 
 exports.readOne = (id, callback) => {
-  readFileAsync(exports.dataDir + `/${id}.txt`, 'utf8', id)
+  readFileAsync(exports.dataDir + `/${id}.txt`, 'utf8')
     .then((data) => callback(null, JSON.parse(data)))
     .catch(() => callback(new Error(`No item with id: ${id}`)));
   // fs.readFile(exports.dataDir + `/${id}.txt`, 'utf8', function (err, data) {
